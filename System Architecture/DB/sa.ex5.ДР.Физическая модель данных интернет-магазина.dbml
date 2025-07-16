@@ -1,0 +1,344 @@
+Table Batch {
+	id integer [ pk, increment, not null, unique ]
+	delivery_date datetime2 [ not null, note: 'Дата поставки товаров' ]
+	provider_id integer [ not null, note: 'Ссылка на Поставщика' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Партия поставки товара'
+}
+
+Table Products_Batch {
+	id integer [ pk, increment, not null, unique ]
+	batch_id integer [ not null, note: 'Ссылка на партию поставки' ]
+	prod_id integer [ not null, note: 'Ссылка на товар' ]
+	prod_count integer [ not null, note: 'Количество единиц товара в поставке' ]
+	production_date datetime2 [ note: 'Дата производства' ]
+	expirity_term smallint [ note: 'Срок годности товара, дней' ]
+	prod_batch_cost decimal(7,2) [ note: 'Стоимость партии товара' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Перечень товаров в поставке'
+}
+
+Table Product {
+	id integer [ pk, increment, not null, unique ]
+	name nvarchar(50) [ not null, note: 'Наименование товара' ]
+	gr_id integer [ note: 'Ссылка на группу товаров' ]
+	price numeric(6,2) [ note: 'цена единицы товара' ]
+	pr_appoinm_time datetime2 [ note: 'Время назначения цены' ]
+	discount decimal(5,2) [ default: 0, note: 'Скидка на товар' ]
+	discount_start datetime2 [ note: 'Начало действия скидки' ]
+	discount_end datetime2 [ note: 'Окончание действия скидки' ]
+	producer_id integer [ not null, note: 'Ссылка на производителя товара' ]
+  prod_count integer [ not null, note: 'Количество единиц товара в поставке' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Товар'
+}
+
+Table Order_Products {
+	id integer [ pk, increment, not null, unique ]
+	ordr_id integer [ not null, note: 'Ссылка на Заказ пользователя' ]
+	prod_id integer [ not null, note: 'Ссылка на товар' ]
+	prod_amount smallint [ not null, default: 1, note: 'Количество единиц товара' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Товары, добавленные в Корзину'
+}
+
+Table Order {
+	id integer [ pk, increment, not null, unique ]
+	user_id integer [ note: 'Ссылка на покупателя' ]
+	sorting_criteria tinyint [ note: 'Критерий сортировки товаров' ]
+	order_date datetime2 [ not null, default: 'GETDATE()', note: 'Дата покупки' ]
+	delivery_type tinyint [ not null, note: 'Способ доставки (справочник)' ]
+	deliv_address nvarchar(255) [ note: 'Адрес доставки' ]
+	deliv_date date [ note: 'Дата желаемой доставки' ]
+	deliv_time_from time [ note: 'Время желаемой доставки (от)' ]
+	deliv_time_till time [ note: 'Время желаемой доставки (до)' ]
+	cost decimal(7,2) [ note: 'Сумма к оплате, руб.' ]
+	discount_cost decimal(6,2) [ note: 'Размер общей скидки, руб.' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Заказ товаров'
+}
+
+Table Sex {
+	id tinyint [ pk, increment, not null, unique ]
+	name nvarchar(10) [ not null, note: 'Наименование пола' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Роль пользователя'
+}
+
+Table Comparison {
+	id integer [ pk, increment, not null, unique ]
+	user_id integer [ note: 'Ссылка на покупателя' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Сравнение товаров'
+}
+
+Table Comparison_Products {
+	id integer [ pk, increment, not null, unique ]
+	comp_id integer [ not null, note: 'Ссылка на Сравнение товаров пользователя' ]
+	prod_id integer [ not null, note: 'Ссылка на товар' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Товары, добавленные в Сравнение'
+}
+
+Table ProductGroup {
+	id integer [ pk, increment, not null, unique ]
+	name nvarchar(255) [ not null, note: 'Наименование товарной группы' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Товарная группа'
+}
+
+Table Basket {
+	id integer [ pk, increment, not null, unique ]
+	user_id integer [ note: 'Ссылка на покупателя' ]
+	sorting_criteria tinyint [ note: 'Критерий сортировки товаров' ]
+	promo_word nvarchar(10) [ note: 'Кодовое слово по промоакции' ]
+	discount decimal(5,2) [ note: 'Размер скидки покупателя по программе лояльности' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Корзина товаров'
+}
+
+Table Basket_Products {
+	id integer [ pk, increment, not null, unique ]
+	bsk_id integer [ not null, note: 'Ссылка на Корзину пользователя' ]
+	prod_id integer [ not null, note: 'Ссылка на товар' ]
+	prod_amount smallint [ not null, default: 1, note: 'Количество единиц товара' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Товары, добавленные в Корзину'
+}
+
+Table Favorite {
+	id integer [ pk, increment, not null, unique ]
+	sorting_criteria tinyint [ note: 'Критерий сортировки товаров' ]
+	user_id integer [ note: 'Ссылка на покупателя' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Избранные товары'
+}
+
+Table Favorite_Products {
+	id integer [ pk, increment, not null, unique ]
+	fav_id integer [ note: 'Ссылка на категорию Избранное пользователя' ]
+	prod_id integer [ note: 'Ссылка на товар' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Товары, добавленные в Избранное'
+}
+
+Table User {
+	id integer [ pk, increment, not null, unique ]
+	name nvarchar(255) [ not null, note: 'Развернутое имя пользователя (ФИО)' ]
+	e_mail varchar(255) [ not null, note: 'Логин пользователя (адрес эл.почты)' ]
+	password varchar(64) [ not null, note: 'Хэш пароля пользователя' ]
+	role_id tinyint [ not null, note: 'Роль пользователя' ]
+	sex_id tinyint [ note: 'Пол пользователя (справочник)' ]
+	birthdate date [ note: 'Дата рождения пользователя' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Пользователь системы'
+}
+
+Table Role {
+	id tinyint [ pk, increment, not null, unique ]
+	name nvarchar(20) [ not null, note: 'Наименование роли' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Роль пользователя'
+}
+
+Table Permission {
+	id tinyint [ pk, increment, not null, unique ]
+	name nvarchar(20) [ not null, note: 'Наименование разрешения' ]
+  description nvarchar(255) [ null, note: 'Описание разрешения' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Разрешение пользователя'
+}
+
+Table Role_Permissions {
+	id integer [ pk, increment, not null, unique ]
+	role_id integer [ not null, note: 'Ссылка на роль пользователя' ]
+	permis_id integer [ not null, note: 'Ссылка на разрешение' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Разрешения для пользователя'
+}
+
+Table Counterparty {
+	id integer [ pk, increment, not null, unique ]
+	name nvarchar(255) [ note: 'Наименование организации' ]
+	address nvarchar(255) [ note: 'Адрес организации' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Контрагент'
+}
+
+Table Payment {
+	id integer [ pk, increment, not null, unique ]
+	order_id integer [ not null, note: 'Ссылка на заказ' ]
+	bank_id integer [ not null, note: 'Ссылка на банк' ]
+	payment_amount decimal(7,2) [ not null, note: 'Сумма платежа' ]
+	payment_date datetime2 [ not null, note: 'Дата и время платежа' ]
+  created_at datetime2 [ not null, note: 'Дата создания записи' ]
+  created_by integer [ not null, note: 'Пользователь, создавший запись' ]
+  updated_at datetime2 [ not null, note: 'Дата обновления записи' ]
+  updated_by integer [ not null, note: 'Пользователь, обновивший запись' ]
+
+	Note: 'Оплата'
+}
+
+Ref fk_Product_gr_id_ProductGroup {
+	Product.gr_id > ProductGroup.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Favorite_Products_prod_id_Product {
+	Favorite_Products.prod_id > Product.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Basket_Products_bsk_id_Basket {
+	Basket_Products.bsk_id > Basket.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Basket_Products_prod_id_Product {
+	Basket_Products.prod_id > Product.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Favorite_Products_fav_id_Favorite {
+	Favorite_Products.fav_id > Favorite.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Comparison_Products_comp_id_Comparison {
+	Comparison_Products.comp_id > Comparison.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Comparison_Products_prod_id_Product {
+	Comparison_Products.prod_id > Product.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Comparison_user_id_User {
+	Comparison.user_id - User.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Basket_user_id_User {
+	Basket.user_id - User.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Favorite_user_id_User {
+	Favorite.user_id - User.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_User_role_id_Role {
+	User.role_id > Role.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_User_sex_id_Sex {
+	User.sex_id > Sex.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Order_user_id_User {
+	Order.user_id > User.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Order_Products_ordr_id_Order {
+	Order_Products.ordr_id > Order.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Order_Products_prod_id_Product {
+	Order_Products.prod_id > Product.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_ProductBatch_batch_id_Batch {
+	Products_Batch.batch_id > Batch.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Product_producer_id_Counterparty {
+	Product.producer_id - Counterparty.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Batch_provider_id_Counterparty {
+	Batch.provider_id - Counterparty.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_ProductBatch_prod_id_Product {
+	Products_Batch.prod_id > Product.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Payment_order_id_Order {
+	Payment.order_id - Order.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Payment_bank_id_Counterparty {
+	Payment.bank_id < Counterparty.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Role_Permissions_permis_id_Permission {
+	Role_Permissions.permis_id > Permission.id [ delete: cascade, update: set default ]
+}
+
+Ref fk_Role_Permissions_role_id_Role {
+	Role_Permissions.role_id > Role.id [ delete: cascade, update: set default ]
+}
