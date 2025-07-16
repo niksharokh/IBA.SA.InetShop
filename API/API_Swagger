@@ -1,0 +1,968 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/NIKSHAROKH/IBA-SA.OnlineShopAPI/1.0.0
+info:
+  description: Описание API интернет-магазина
+  version: "1.0.0"
+  title: Online shop API
+  contact:
+    email: me@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: merchandiser
+    description: Товаровед. Управляет каталогом товаров
+  - name: client
+    description: Авторизованный покупатель. Выбирает товары и совершает покупки
+  - name: user
+    description: Любой пользователь, в т.ч. неавторизованный
+  - name: deliverer
+    description: Курьер, работник службы доставки
+paths:
+  /login:
+    post:
+      tags:
+        - user
+      summary: Вход пользователя в систему
+      description: Аутентификация пользователя с использованием логина и пароля.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: Логин пользователя
+                  example: "yana_k@example.ru"
+                password:
+                  type: string
+                  format: password
+                  description: Пароль пользователя
+                  example: "password"
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Bearer Token для аутентификации
+                    example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjEyMzQiLCJ1c2VybmFtZSI6ImJpcnNjaG5lcnNvZXZfaGVsbG9fc2VjdXJpdHkiLCJyb2xlIjoidXNlciJ9.cZL6FJ2EKzK4gSKpPVo5v6poE1T9m3MxoA3on8RHkJ2I"
+        '400':
+          description: Некорректный запрос (например, отсутствуют обязательные параметры)
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '500':
+          description: Внутренняя ошибка сервера
+  /products:
+    get:
+      tags:
+        - merchandiser
+        - client
+        - user
+      summary: Получение списка товаров
+      operationId: searchProducts
+      description: |
+        Метод получения списка или каталога товаров
+        Позволяет применять фильтры по группам продуктов, цене, а также сортировать результат и применять пагинацию
+      parameters:
+        - in: query
+          name: page
+          description: Номер страницы для пагинации
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+            maximum: 1000
+        - in: query
+          name: limit
+          description: Количество возвращаемых записей (товаров) на одной странице
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+        - in: query
+          name: sort_by
+          description: Критерий сортировки товаров по группам товаров, наименованию товаров
+          required: false
+          schema:
+            type: string
+            enum:
+              - group
+              - name
+            default: name
+        - in: query
+          name: order
+          description: Порядок сортировки товаров
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+        - in: query
+          name: group
+          description: Фильтрация товаров по группе товаров
+          required: false
+          schema:
+            type: string
+            enum:
+              - milky
+              - meat
+              - beverages
+              - groceries
+        - in: query
+          name: price_from
+          description: Фильтрация товаров по цене (нижний порог цены)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 500
+            default: 0
+        - in: query
+          name: price_till
+          description: Фильтрация товаров по цене (верхний порог цены)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 5000
+            default: 5000
+      responses:
+        '200':
+          description: Получен список товаров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productShort'
+        '400':
+          description: Некорректный запрос (например, отсутствуют обязательные параметры)
+        '404':
+          description: По указанным параметрам ничего не найдено (уточните параметры)
+        '500':
+          description: Сервер временно недоступен
+    post:
+      tags:
+        - merchandiser
+      summary: Добавить новый товар
+      operationId: addProduct
+      description: Добавляет новый товар в каталог товаров. Внесение нового товара осуществляется товароведом. 
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Описание нового товара для добавления в каталог
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/productNew'
+      responses:
+        '201':
+          description: Товар добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productFull'
+        '400':
+          description: Неверное описание товара
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для создания товара
+        '409':
+          description: Товар с похожим описанием (наименование, производитель) уже существует
+        '500':
+          description: Внутренняя ошибка сервера
+  /products/{id}:
+    get:
+      tags:
+        - merchandiser
+        - client
+        - user
+      summary: Получение описания товаров
+      operationId: detailedProduct
+      description: |
+        Метод получения детального описания товара
+        Позволяет по указанному идентификатору товара получить его полное описание
+      parameters:
+      - in: path
+        name: id
+        description: Идентификатор товара
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '200':
+          description: Товар найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productFull'
+        '404':
+          description: Товар не найден
+        '500':
+          description: Внутренняя ошибка сервера
+    patch:
+      tags:
+        - merchandiser
+      summary: Обновить сведения о товаре
+      operationId: modifProduct
+      description: Обновляет сведения о существующем товаре в каталоге товаров. Изменение товара осуществляется товароведом. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: id
+        description: Идентификатор товара
+        required: true
+        schema:
+          type: integer
+          example: 1
+      requestBody:
+        description: Описание изменяемых сведений о товаре для обновления в каталоге
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/productModified'
+      responses:
+        '201':
+          description: Сведения о товаре обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productFull'
+        '400':
+          description: Неверное описание товара
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для обновления товара
+        '404':
+          description: Товар не найден
+        '500':
+          description: Внутренняя ошибка сервера
+    delete:
+      tags:
+        - merchandiser
+      summary: Удалить товар из каталога
+      operationId: deleteProduct
+      description: Удаляет сведения о существующем товаре из каталога товаров. Удаление товара осуществляется товароведом. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: id
+        description: Идентификатор товара
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '204':
+          description: Товар удален
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для удаления товара
+        '404':
+          description: Товар не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /favorites/{userId}:
+    get:
+      tags:
+        - client
+      summary: Получение перечня Избранных товаров
+      operationId: viewFavorites
+      description: |
+        Метод получения перечня Избранных товаров
+        Позволяет по указанному идентификатору пользователя получить перечень избранных (отложенных) товаров
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '200':
+          description: Избранные товары найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/favorites'
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для просмотра избранных товаров
+        '404':
+          description: Избранные товары не найдены
+        '500':
+          description: Внутренняя ошибка сервера
+  /favorites/{userId}/products:
+    post:
+      tags:
+        - client
+      summary: Добавить товар в список избранных товаров
+      operationId: addToFavorite
+      description: Добавляет  товар в список избранных (отложенных) товаров. Добавление товара в избранное осуществляется зарегистрированным покупателем. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      requestBody:
+        description: Идентификатор товара для добавления в Избранное
+        content:
+          application/json:
+            schema:
+              description: Идентификатор товара
+              type: integer
+              example: 1
+      responses:
+        '201':
+          description: Товар добавлены в избранное
+        '400':
+          description: Неверное описание товара
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для обновления избранного
+        '404':
+          description: Перечень избранных товаров не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /favorites/{userId}/products/{id}:
+    delete:
+      tags:
+        - client
+      summary: Удалить товар из списка избранных товаров
+      operationId: deleteFmFavorites
+      description: Удаляет товар из списка избранных товаров. Удаление товара из избранных осуществляется зарегистированным покупателем. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      - in: path
+        name: id
+        description: Идентификатор товара
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '204':
+          description: Товар удален
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для удвления товара
+        '404':
+          description: Товар не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /baskets/{userId}:
+    get:
+      tags:
+        - client
+      security:
+        - bearerAuth: []
+      summary: Получение состава корзины покупателя
+      operationId: viewBasket
+      description: |
+        Метод получения перечня товаров, содержащихся в корзине, и их количества
+        Позволяет по указанному идентификатору пользователя получить перечень и количество товаров в корзине
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '200':
+          description: Товары в корзине найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/basket'
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для просмотра корзины товаров
+        '404':
+          description: Корзина товаров не найдена
+        '500':
+          description: Внутренняя ошибка сервера
+  /baskets/{userId}/products:
+    post:
+      tags:
+        - client
+      summary: Добавить товар в корзину товаров
+      operationId: addToBasket
+      description: Добавляет  товар в корзину товаров. Добавление товара в корзину осуществляется зарегистрированным покупателем. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      requestBody:
+        description: Идентификаторы и количество товаров для добавления в корзину
+        content:
+          application/json:
+            schema:
+              description: Перечень товаров и их количества
+              type: array
+              items:
+                type: object
+                required:
+                  - prod_id
+                  - prod_count
+                properties:
+                  prod_id:
+                    type: integer
+                    description: Идентификатор товара
+                    example: 2
+                  prod_count:
+                    description: Количество товара (в продуктовых единицах)
+                    type: number
+                    format: decimal
+                    example: 85.00
+                    minimum: 0.00
+      responses:
+        '201':
+          description: Товары добавлены в корзину
+        '400':
+          description: Неверное описание товара
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для обновления корзины
+        '404':
+          description: Перечень товаров в корзине не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /baskets/{userId}/products/{id}:
+    delete:
+      tags:
+        - client
+      summary: Удалить товар из корзины товаров
+      operationId: deleteFmBasket
+      description: Удаляет товар из списка корзины товаров. Удаление товара из корзины осуществляется зарегистированным покупателем. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      - in: path
+        name: id
+        description: Идентификатор товара
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '204':
+          description: Товар удален
+        '400':
+          description: Некорректные данные
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для удаления товара
+        '404':
+          description: Товар не найден
+        '500':
+          description: Внутренняя ошибка сервера
+    patch:
+      tags:
+        - client
+      summary: Изменить количество товаров
+      operationId: prodCountInBasket
+      description: Изменяет количество единиц товара в заказе. Изменение количества товара в заказе осуществляется зарегистрированным покупателем.
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: userId
+        description: Идентификатор пользователя
+        required: true
+        schema:
+          type: integer
+          example: 1
+      - in: path
+        name: id
+        description: Идентификатор товара
+        required: true
+        schema:
+          type: integer
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Количество товаров
+              type: object
+              required:
+                - prod_count
+              properties:
+                prod_count:
+                  description: Количество товара (в продуктовых единицах)
+                  type: number
+                  format: decimal
+                  example: 85.00
+                  minimum: 0.00
+      responses:
+        '201':
+          description: Количество товаров в корзине обновлены
+        '400':
+          description: Неверное описание товара
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для обновления корзины
+        '404':
+          description: Товар в корзине не найден
+        '500':
+          description: Внутренняя ошибка сервера
+  /orders:
+    post:
+      tags:
+        - client
+      summary: Создать новый заказ
+      operationId: addOrder
+      description: Создает новый заказ товаров. Создание нового заказа осуществляется зарегистрированным покупателем. 
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Перечень товаров для создания заказа
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/order'
+      responses:
+        '201':
+          description: Заказ создан
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/order'
+        '400':
+          description: Неверное описание заказа
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для создания товара
+        '409':
+          description: Заказ с похожим описанием (пользователь, стоимость) уже существует
+        '500':
+          description: Внутренняя ошибка сервера
+  /orders/{id}:
+    get:
+      tags:
+        - merchandiser
+        - deliverer
+        - client
+      summary: Просмотреть заказ покупателем, товароведом для сборки на складе или курьером для доставки покупателю
+      operationId: viewOrder
+      description: |
+        Метод получения перечня товаров, адреса и времени доставки, содержащихся в заказе
+        Позволяет по указанному идентификатору заказа получить состав заказа
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: id
+        description: Идентификатор заказа
+        required: true
+        schema:
+          type: integer
+          example: 1
+      responses:
+        '200':
+          description: Заказ нейден
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/order'
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для просмотра заказа
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Внутренняя ошибка сервера
+    patch:
+      tags:
+        - client
+        - merchandiser
+        - deliverer
+      summary: Изменить статус заказа
+      operationId: modifyOrder
+      description: Изменяет статус заказа. Отмена заказа осуществляется зарегистрированным покупателем. Другие изменения состояния заказа осуществляется товароведом, курьером. 
+      security:
+        - bearerAuth: []
+      parameters:
+      - in: path
+        name: id
+        description: Идентификатор заказа
+        required: true
+        schema:
+          type: integer
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Статус заказа
+              type: object
+              required:
+                - order_status
+              properties:
+                order_status:
+                  type: string
+                  description: Статус заказа
+                  enum:
+                  - отправлен на сборку
+                  - собран
+                  - готов для выдачи
+                  - в процессе доставки
+                  - оплачен
+                  - доставлен
+                  - отменен
+                  example: "отменен"
+      responses:
+        '201':
+          description: Заказ изменен
+        '400':
+          description: Неверное описание статуса заказа
+        '401':
+          description: Неверные данные для входа (неправильный логин или пароль)
+        '403':
+          description: Нет прав для обновления статуса заказа
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Внутренняя ошибка сервера
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    productMin: 
+      description: Минимальное описание товара (используется для других моделей)
+      type: object
+      required: 
+        - name
+        - group_name
+        - price
+        - discount
+        - prod_count
+      properties:
+        name:
+          description: Наименование товара
+          type: string
+          example: "Молоко"
+        group_name:
+          description: Наименование группы товаров
+          type: string
+          example: "Молочные продукты"
+        price:
+          description: Стоимость (цена) товара
+          type: number
+          format: decimal
+          example: 15.54
+          minimum: 0
+          maximum: 5000
+        discount:
+          description: Размер скидки на товар (в процентах)
+          type: number
+          format: decimal
+          example: 5.00
+          minimum: 0.00
+          maximum: 100.00
+        prod_count:
+          description: Количество товара (в продуктовых единицах)
+          type: number
+          format: decimal
+          example: 85.00
+          minimum: 0.00
+    productShort: 
+      description: Краткое описание товара (используется для краткого представления товара в каталоге)
+      allOf:
+      - $ref: '#/components/schemas/productMin'
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            description: Идентификатор товара
+            type: integer
+            example: 1
+    productNew: 
+      description: Расширенное описание вновь создаваемого товара (без id, используется при добавлении описания нового товара)
+      allOf:
+      - $ref: '#/components/schemas/productMin'
+      - type: object
+        required:
+          - price_valid_from
+          - discount_start
+          - discount_end
+          - producer_name
+        properties:
+          price_valid_from:
+            description: Дата и время начала действия текущей цены на товар
+            type: string
+            format: date-time
+            example: '2025-06-29T09:12:33.001Z'
+          discount_start:
+            description: Дата и время начала действия скидки на товар
+            type: string
+            format: date-time
+            example: '2025-07-02T09:12:33.001Z'
+          discount_end:
+            description: Дата и время окончания действия скидки на товар
+            type: string
+            format: date-time
+            example: '2025-07-30T23:59:59.999Z'
+          producer_name:
+            description: Наименование производителя товара
+            type: string
+            example: "Гормолзавод №1"
+    productModified: 
+      description: Расширенное описание обновляемого товара (с id, используется при обновлении описания товара)
+      allOf:
+      - $ref: '#/components/schemas/productNew'
+      - type: object
+        required:
+          - id
+        properties:
+          id:
+            description: Идентификатор товара
+            type: integer
+            example: 1
+    productFull: 
+      description: Полное описание существующего товара (с id, используется при промотре детального описания товара)
+      allOf:
+      - $ref: '#/components/schemas/productNew'
+      - type: object
+        required:
+          - id
+          - created_at
+          - created_by
+          - updated_at
+          - updated_by
+        properties:
+          id:
+            description: Идентификатор товара
+            type: integer
+            example: 1
+          created_at:
+            description: Дата и время создания записи о товаре
+            type: string
+            format: date-time
+            example: '2025-07-30T23:59:59.999Z'
+          created_by:
+            description: Идентификатор пользователя, создавшего товар
+            type: integer
+            example: 1
+          updated_at:
+            description: Дата и время обновления записи о товаре
+            type: string
+            format: date-time
+            example: '2025-07-30T23:59:59.999Z'
+          updated_by:
+            description: Идентификатор пользователя, обновившего товар
+            type: integer
+            example: 1
+    favorites: 
+      description: Описание избранных товаров пользователя
+      type: object
+      required: 
+        - id
+        - user_id
+      properties:
+        id:
+          description: Идентификатор перечня избранных товаров
+          type: integer
+          example: 23
+        user_id:
+          description: Идентификатор пользователя
+          type: integer
+          example: 6
+        products:
+          description: Перечень товаров
+          type: array
+          items:
+            $ref: '#/components/schemas/productShort'
+    basket: 
+      description: Описание состава корзины товаров пользователя
+      type: object
+      required: 
+        - id
+        - user_id
+      properties:
+        id:
+          description: Идентификатор корзины товаров
+          type: integer
+          example: 23
+        user_id:
+          description: Идентификатор пользователя
+          type: integer
+          example: 6
+        promo_word:
+          description: Условная фраза промоакции для определения скидки на товар
+          type: string
+          example: "ЛЕТО25"
+          default: null
+        discount:
+          description: Размер скидки на все товары по промоакции (в процентах)
+          type: number
+          format: decimal
+          example: 5.00
+          minimum: 0.00
+          maximum: 100.00
+          default: 0.00
+        products:
+          description: Перечень товаров
+          type: array
+          items:
+            $ref: '#/components/schemas/productShort'
+    order: 
+      description: Описание состава заказа товаров пользователем
+      type: object
+      required: 
+        - id
+        - user_id
+        - order_date
+        - order_status
+        - delivery_type
+        - deliv_date
+        - cost
+        - discount_cost
+        - products
+      properties:
+        id:
+          description: Идентификатор заказа товаров
+          type: integer
+          example: 23
+        user_id:
+          description: Идентификатор пользователя
+          type: integer
+          example: 6
+        order_date:
+          description: Дата и время создания заказа
+          type: string
+          format: date-time
+          example: '2025-07-30T23:59:59.999Z'
+        order_status:
+          description: Состояние заказа
+          type: string
+          enum:
+          - создан
+          - отправлен на сборку
+          - собран
+          - готов для выдачи
+          - в процессе доставки
+          - оплачен
+          - доставлен
+          - отменен
+          example: "создан"
+        delivery_type:
+          description: Способ доставки товара покупателю
+          type: string
+          enum:
+          - самовывоз со склада
+          - доставка курьером до квартиры
+          - доставка почтой
+          example: "доставка курьером до квартиры"
+        delivery_address:
+          description: Адрес для доставки товара покупателю
+          type: string
+          example: "г. Минск, ул.Казинца, 95, кв.15"
+        deliv_date:
+          description: Дата и время желаемой доставки товаров
+          type: string
+          format: date-time
+          example: '2025-07-30T23:59:59.999Z'
+        deliv_time_from:
+          description: Время желаемой доставки товаров (начало периода)
+          type: string
+          format: time
+          example: '09:00:00.000Z'
+        deliv_time_till:
+          description: Время желаемой доставки товаров (окончание периода)
+          type: string
+          format: time
+          example: '21:00:00.000Z'
+        cost:
+          description: Расчетная стоимость всех товаров в заказе
+          type: number
+          format: decimal
+          example: 5.00
+          minimum: 0.00
+          maximum: 5000.00
+        discount_cost:
+          description: Окончательная стоимость для оплаты всех товаров в заказе с учетом скидки и промоакции
+          type: number
+          format: decimal
+          example: 5.00
+          minimum: 0.00
+          maximum: 5000.00
+        products:
+          description: Перечень товаров
+          type: array
+          items:
+            $ref: '#/components/schemas/productShort'
