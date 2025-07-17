@@ -66,11 +66,8 @@ git checkout -b docs-update
 Если у вас возникли сложности или вопросы по использованию пакета, создайте обсуждение в данном репозитории или напишите на электронную почту niksharokh@gmail.com.
 
 ## Архитектура проекта
-Архитектура проекта пердставлена в файле [C4_Architecture](https://github.com/YanaKidun/IShop/tree/main/System%20Architecture) 
+Архитектура проекта пердставлена в файле [C4_Architecture](https://github.com/niksharokh/IBA.SA.InetShop/blob/main/System%20Architecture/СА.ДР.Занятие%204.Архитектура%20И-магазина.drawio.xml) 
 
 ## API
-Докуметация API для работы с проектом представлена в [файле](https://github.com/YanaKidun/IShop/blob/main/API/API_Swagger) дополнительно ознакомится можно прейдя по сслыке: https://app.swaggerhub.com/apis/STABROVSKAYAYA/Iba/1.0.0
+Докуметация API для работы с проектом представлена в [файле](https://github.com/niksharokh/IBA.SA.InetShop/blob/main/API/API_Swagger) дополнительно ознакомится можно прейдя по [сслыке:] (https://app.swaggerhub.com/apis/NIKSHAROKH/IBA-SA.OnlineShopAPI/1.0.0)
 Общее описание работы с [OpenAPI](https://github.com/docops-hq/learnapidoc-ru/blob/master/openAPI-specification/README.md)
-
-## Описание Кafka
-Описание используемого брокера сообщений, приложения продьюсера, консьюмера, а так же требования предствалены в разделе [Kafka](https://github.com/YanaKidun/IShop/tree/main/Kafka)
